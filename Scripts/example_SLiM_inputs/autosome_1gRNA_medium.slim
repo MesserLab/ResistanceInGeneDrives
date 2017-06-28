@@ -1,0 +1,115 @@
+
+initialize() {
+        initializeMutationRate( 0.0 );
+        initializeMutationType("m1", 0.5, "f", -0.05); //D
+        initializeMutationType("m2", 0.5, "f", 0.0); //+
+        initializeMutationType("m3", 0.5, "f", 0.0); //r01
+        initializeMutationType("m4", 0.5, "f", 0.0); //r10
+        initializeMutationType("m5", 0.5, "f", 0.0); //r11
+        initializeGenomicElementType("g1", m1, 1.0);
+        initializeGenomicElement(g1, 0, 1);
+        initializeRecombinationRate(0.0);
+    initializeSex('A');
+}
+1 {
+	sim.addSubpop("p1", 10000);
+}
+
+1 late() {
+
+	p1.genomes[!p1.genomes.isNullGenome].addNewDrawnMutation(m2, 0); //add wildtype
+
+        femaleGenomes = p1.individuals[p1.individuals.sex == "F"].genomes[0:99];
+	femaleGenomes.removeMutations(sim.mutationsOfType(m2));
+	femaleGenomes.addNewDrawnMutation(m1, 0); //add driver
+
+        maleGenomes = p1.individuals[p1.individuals.sex == "M"].genomes[0:99];
+	maleGenomes.removeMutations(sim.mutationsOfType(m2));
+	maleGenomes.addNewDrawnMutation(m1, 0); //add driver
+}
+
+modifyChild() {
+	driver = sim.mutationsOfType(m1);
+	wild = sim.mutationsOfType(m2);
+	r01 = sim.mutationsOfType(m3);
+	r10 = sim.mutationsOfType(m4);
+	r11 = sim.mutationsOfType(m5);
+	MomGenomes = c(parent1Genome1, parent1Genome2);
+	DadGenomes = c(parent2Genome1, parent2Genome2);
+	ChildGenomes = c(childGenome1, childGenome2);
+        ChildGenomes = ChildGenomes[!ChildGenomes.isNullGenome];
+	child.tagF = 0;
+	if(any(MomGenomes.containsMutations(driver))) { //Embryo
+		c = 0.23;
+		if(sum(MomGenomes.containsMutations(driver)) > 1){
+			c = 0.32;
+		}
+                  if(any(ChildGenomes.containsMutations(wild))) {
+                  roll = runif(1);
+
+                      if(sum(childGenome1.containsMutations(wild))){
+		if(roll < c) {		//convert to r01
+
+					childGenome1.removeMutations(wild);
+					childGenome1.addNewDrawnMutation(m3, 1);
+                }
+                                }
+                                if((runif(1) < c*(1-c)) & sum(childGenome2.containsMutations(wild))){
+          childGenome2.removeMutations(wild);
+					childGenome2.addNewDrawnMutation(m3, 1);
+ }
+        }
+    }
+                  if(any(ChildGenomes.containsMutations(driver))) { //Germline
+		if(any(ChildGenomes.containsMutations(wild))) {
+
+                        child.tagF = 0.95;
+                        roll = runif(1);
+			if(roll < 0.3){		//convert to r01
+				if(sum(childGenome1.containsMutations(wild))){
+					childGenome1.removeMutations(wild);
+					childGenome1.addNewDrawnMutation(m3, 1);
+                } else if(sum(childGenome2.containsMutations(wild))){
+                  childGenome2.removeMutations(wild);
+					childGenome2.addNewDrawnMutation(m3, 1);
+				}
+			} else if(runif(1) < 0.98) {		//convert to D
+                      if(sum(childGenome1.containsMutations(wild))){
+					childGenome1.removeMutations(wild);
+					childGenome1.addNewDrawnMutation(m1, 1);
+                } else if(sum(childGenome2.containsMutations(wild))){
+                  childGenome2.removeMutations(wild);
+					childGenome2.addNewDrawnMutation(m1, 1);
+				}
+			}
+		}
+	}
+	return T;
+}
+
+fitness(NULL) {
+	if(individual.tagF > 0)
+		return individual.tagF;
+	else
+		return relFitness;
+}
+
+1:40 late() {
+	if (sim.countOfMutationsOfType(m1) == 0){
+                fixed = (sum(sim.substitutions.mutationType == m1) == 1);
+                if(fixed){
+			cat(paste('#OUTPUT: 1 ' + sim.generation, '\n'));
+                } else {
+			cat(paste('#OUTPUT: 0 ' + sim.generation, '\n'));
+                }
+		sim.simulationFinished();
+	} else {
+                driver = sim.mutationsOfType(m1);
+		wild = sim.mutationsOfType(m2);
+	     	r01 = sim.mutationsOfType(m3);
+                r10 = sim.mutationsOfType(m4);
+                r11 = sim.mutationsOfType(m5);
+                cat('#OUTPUT: ');
+		cat(sum(sim.mutationFrequencies(p1, driver)) + " " + sum(sim.mutationFrequencies(p1, wild)) + " " + sum(sim.mutationFrequencies(p1, r01)) + " " +  sum(sim.mutationFrequencies(p1, r10)) + " " + sum(sim.mutationFrequencies(p1, r11)) + '\n');
+	}
+}
