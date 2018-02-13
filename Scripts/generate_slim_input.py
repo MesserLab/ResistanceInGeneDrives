@@ -14,18 +14,18 @@ DEFAULT = {
         "Sr11r11": 0.0,
         "Sr11D": -0.05,
         "SDD": -0.1,
-        "b": 0.35,
-        "d": 0.99,
-        "c1":0.75,
-        "c2":0.95,
-        "X": False,
-        "two_allele": False,
+        "b": 0.25,
+        "d": 0.93,
+        "c1":0.03,
+        "c2":0.05,
+        "X": True,
+        "N_guideRNA": 2,
 }
 
 class params:
     def __init__(self, N=DEFAULT["N"], Sww=DEFAULT["Sww"], Swr01=DEFAULT["Swr01"], Swr11=DEFAULT["Swr11"], SwD=DEFAULT["SwD"], Sr01r11=DEFAULT["Sr01r11"],\
             Sr01r01=DEFAULT["Sr01r01"], Sr01D=DEFAULT["Sr01D"], Sr11r11=DEFAULT["Sr11r11"], Sr11D=DEFAULT["Sr11D"], SDD=DEFAULT["SDD"], d=DEFAULT["d"], b=DEFAULT["b"], c1=DEFAULT["c1"], c2=DEFAULT["c2"],\
-            X=DEFAULT["X"], two_allele=DEFAULT["two_allele"]):
+            X=DEFAULT["X"], N_guideRNA=DEFAULT["N_guideRNA"]):
         self.N = N
         self.Sww = Sww
         self.Swr01=Swr01
@@ -42,17 +42,14 @@ class params:
         self.c1=c1
         self.c2=c2
         self.X = X
-        self.two_allele = two_allele
+        self.N_guideRNA = N_guideRNA 
 
 def init(args):
     out = """
 initialize() {
         initializeMutationRate( 0.0 );
         initializeMutationType("m1", 0.5, "f", -0.05); //D
-        initializeMutationType("m2", 0.5, "f", 0.0); //+
         initializeMutationType("m3", 0.5, "f", 0.0); //r01
-        initializeMutationType("m4", 0.5, "f", 0.0); //r10
-        initializeMutationType("m5", 0.5, "f", 0.0); //r11
         initializeGenomicElementType("g1", m1, 1.0);
         initializeGenomicElement(g1, 0, 1);
         initializeRecombinationRate(0.0);\n"""
@@ -70,264 +67,82 @@ initialize() {
     if args.X:
         out += """
 	xGenomes = p1.genomes[!p1.genomes.isNullGenome];
-	xGenomes.addNewDrawnMutation(m2, 0); //add wildtype
 
         femaleGenomes = p1.individuals[p1.individuals.sex == "F"].genomes[0:99];
-	femaleGenomes.removeMutations(sim.mutationsOfType(m2));
 	femaleGenomes.addNewDrawnMutation(m1, 0); //add driver
 
         maleGenomes = p1.individuals[p1.individuals.sex == "M"].genomes;
         maleGenomes = maleGenomes[!maleGenomes.isNullGenome][0:49];
-	maleGenomes.removeMutations(sim.mutationsOfType(m2));
 	maleGenomes.addNewDrawnMutation(m1, 0); //add driver\n"""
     else:
         out += """
-	p1.genomes[!p1.genomes.isNullGenome].addNewDrawnMutation(m2, 0); //add wildtype
 
         femaleGenomes = p1.individuals[p1.individuals.sex == "F"].genomes[0:99];
-	femaleGenomes.removeMutations(sim.mutationsOfType(m2));
 	femaleGenomes.addNewDrawnMutation(m1, 0); //add driver
 
         maleGenomes = p1.individuals[p1.individuals.sex == "M"].genomes[0:99];
-	maleGenomes.removeMutations(sim.mutationsOfType(m2));
 	maleGenomes.addNewDrawnMutation(m1, 0); //add driver\n"""
     out += """}
 
-modifyChild() {
-	driver = sim.mutationsOfType(m1);
-	wild = sim.mutationsOfType(m2);
-	r01 = sim.mutationsOfType(m3);
-	r10 = sim.mutationsOfType(m4);
-	r11 = sim.mutationsOfType(m5);
-	MomGenomes = c(parent1Genome1, parent1Genome2);
-	DadGenomes = c(parent2Genome1, parent2Genome2);
-	ChildGenomes = c(childGenome1, childGenome2);
-        ChildGenomes = ChildGenomes[!ChildGenomes.isNullGenome];
-	child.tagF = 0;
-	if(any(MomGenomes.containsMutations(driver))) { //Embryo
-		c = """ + str(args.c1) + """;
-		if(sum(MomGenomes.containsMutations(driver)) > 1){
+
+
+
+    modifyChild() {
+            MomGenomes = c(parent1Genome1, parent1Genome2);
+            DadGenomes = c(parent2Genome1, parent2Genome2);
+            ChildGenomes = c(childGenome1, childGenome2);
+            ChildGenomes = ChildGenomes[!ChildGenomes.isNullGenome];
+            child.tagF = 0;
+            if(any(MomGenomes.containsMutations(sim.mutationsOfType(m1)))) { //Embryo
+                    c = """ + str(args.c1) + """;
+                    if(sum(MomGenomes.containsMutations(sim.mutationsOfType(m1))) > 1){
 			c = """ + str(args.c2) + """;
-		}\n"""
-    if args.two_allele:
-        out += """		if(any(ChildGenomes.containsMutations(r10))) {
-				if(sum(childGenome1.containsMutations(r10))){
-                                        if(runif(1) < c) {		//convert to r11
-					childGenome1.removeMutations(r10);
-					childGenome1.addNewDrawnMutation(m5, 1);\n"""
-        if args.X:
-            out += "                }  } if(child.sex == 'F') {\n              if(sum(childGenome2.containsMutations(r10))){\n"
-        else:
-            out += "                } } if(sum(childGenome2.containsMutations(r10))){\n"
-        out += """              if(runif(1) < c) {		//convert to r11
-                                        childGenome2.removeMutations(r10);
-					childGenome2.addNewDrawnMutation(m5, 1);
-                                        }
-			}\n"""
-        if args.X:
-            out += "        }\n"
-        out += """		} if(any(ChildGenomes.containsMutations(r01))) {
-				if(sum(childGenome1.containsMutations(r01))){
-                                    if(runif(1) < c) {		//convert to r11
-					childGenome1.removeMutations(r01);
-					childGenome1.addNewDrawnMutation(m5, 1);\n"""
-        if args.X:
-            out += "                } } if(child.sex == 'F') {\n      if(sum(childGenome2.containsMutations(r01))){\n"
-        else:
-            out += "                } } if(sum(childGenome2.containsMutations(r01))){\n"
-        out += """                  if(runif(1) < c) {		//convert to r11
-                                    childGenome2.removeMutations(r01);
-					childGenome2.addNewDrawnMutation(m5, 1);
-                                    }
-			}\n"""
-        if args.X:
-            out += "                }\n"
-    if args.two_allele:
-        out += """                  } else if(any(ChildGenomes.containsMutations(wild))) {\n"""
-    else:
-        out += """                  if(any(ChildGenomes.containsMutations(wild))) {\n"""
-    out += """                  roll = runif(1);\n
-                      if(sum(childGenome1.containsMutations(wild))){\n"""
-    if args.two_allele:
-        out += """		if(roll < c*(1-c)) {		//convert to r01\n"""
-    else:
-        out += """		if(roll < c) {		//convert to r01\n"""
-    out += """
-					childGenome1.removeMutations(wild);
-					childGenome1.addNewDrawnMutation(m3, 1);\n"""
-    if args.X:
-        out += """                }
-                                }
-                                if(child.sex == 'F'){
-                                if((runif(1) < c) & sum(childGenome2.containsMutations(wild))){\n"""
-    elif args.two_allele:
-        out += """                }
-                                }
-                                if((runif(1) < c*(1-c)) & sum(childGenome2.containsMutations(wild))){\n""" 
-    else:
-        out += """                }
-                                }
-                                if((runif(1) < c) & sum(childGenome2.containsMutations(wild))){\n""" 
-    out += """          childGenome2.removeMutations(wild);
-					childGenome2.addNewDrawnMutation(m3, 1);\n"""
-    if args.X:
-        out += """              }\n;"""
-    if args.two_allele:
-        out += """      }            else if(roll < 2*c*(1-c)) {		//convert to r10
-				if(sum(childGenome1.containsMutations(wild))){
-					childGenome1.removeMutations(wild);
-					childGenome1.addNewDrawnMutation(m4, 1);\n"""
-        if args.X:
-            out += "                } if(child.sex == 'F') {\n     if((runif(1) < c*(1-c)) & sum(childGenome2.containsMutations(wild))){\n"
-        else:
-            out += "                } if((runif(1) < c*(1-c)) & sum(childGenome2.containsMutations(wild))){\n"
-        out += """              childGenome2.removeMutations(wild);
-					childGenome2.addNewDrawnMutation(m4, 1);
-				}\n"""
-        if args.X:
-            out += "                }\n"
-        out += """                  } else if(roll <2*c*(1-c)+c*c) {		//convert to r11
-				if(sum(childGenome1.containsMutations(wild))){
-					childGenome1.removeMutations(wild);
-					childGenome1.addNewDrawnMutation(m5, 1);\n"""
-        if args.X:
-            out += "                } if(child.sex == 'F') {\n          if((runif(1) < c*c) & sum(childGenome2.containsMutations(wild))){\n"
-        else:
-            out += "                } if((runif(1) < c*c) & sum(childGenome2.containsMutations(wild))){\n"
-        out += """                  childGenome2.removeMutations(wild);
-					childGenome2.addNewDrawnMutation(m5, 1);
-				}
-			}
-		}
-	}\n"""
-        if args.X:
-            out += "                }\n"
-    else:
-        out += """ }
-        }
-    }\n"""
-    out += """                  if(any(ChildGenomes.containsMutations(driver))) { //Germline\n"""
-    if args.two_allele:
-        out += """          	if(any(ChildGenomes.containsMutations(r10))) {
-                        child.tagF = """ + str(1+args.Sr01D) + """;
-                        roll = runif(1);
-                         	if(roll < """ + str(args.b) + """) {		//convert to r11
-				if(sum(childGenome1.containsMutations(r10))){
-					childGenome1.removeMutations(r10);
-					childGenome1.addNewDrawnMutation(m5, 1);\n"""
-        if args.X:
-            out += "                } else if((child.sex == 'F') & sum(childGenome2.containsMutations(r10))){\n"
-        else:
-            out += "                } else if(sum(childGenome2.containsMutations(r10))){\n"
-        out += """                  childGenome2.removeMutations(r10);
-					childGenome2.addNewDrawnMutation(m5, 1);
-				}
-			} else if(roll < """ + str(args.b) + """+""" +str(args.d) + """*(1-""" + str(args.b) + """)) {		//convert to D
-				if(sum(childGenome1.containsMutations(r10))){
-					childGenome1.removeMutations(r10);
-					childGenome1.addNewDrawnMutation(m1, 1);\n"""
-        if args.X:
-            out += "                } else if((child.sex == 'F') & sum(childGenome2.containsMutations(r10))){\n"
-        else:
-            out += "                } else if(sum(childGenome2.containsMutations(r10))){\n"
-        out += """                  childGenome2.removeMutations(r10);
-					childGenome2.addNewDrawnMutation(m1, 1);
-				}
-			}
-        		} else if(any(ChildGenomes.containsMutations(r01))) {
-                  child.tagF = """ + str(1+args.Sr01D) + """;
-                        roll = runif(1);
-            	if(roll < """ + str(args.b) + """) {		//convert to r11
-				if(sum(childGenome1.containsMutations(r01))){
-					childGenome1.removeMutations(r01);
-					childGenome1.addNewDrawnMutation(m5, 1);\n"""
-        if args.X:
-            out += "                } else if((child.sex == 'F') & sum(childGenome2.containsMutations(r01))){\n"
-        else:
-            out += "                } else if(sum(childGenome2.containsMutations(r01))){\n"
-        out += """                  childGenome2.removeMutations(r01);
-					childGenome2.addNewDrawnMutation(m5, 1);
-				}
-			} else if(roll <""" + str(args.b) + """+""" + str(args.d) + """*(1- """ + str(args.b) + """)) {		//convert to D
-				if(sum(childGenome1.containsMutations(r01))){
-					childGenome1.removeMutations(r01);
-					childGenome1.addNewDrawnMutation(m1, 1);\n"""
-        if args.X:
-            out += "                } else if((child.sex == 'F') & sum(childGenome2.containsMutations(r01))){\n"
-        else:
-            out += "                } else if(sum(childGenome2.containsMutations(r01))){\n"
-        out += """                  childGenome2.removeMutations(r01);
-					childGenome2.addNewDrawnMutation(m1, 1);
-			}
-                    }\n"""
-    prob = 0
-    if args.two_allele:
-        prob = args.b*(1-args.d)*(1-args.b)
-        out += """		} else if(any(ChildGenomes.containsMutations(wild))) {\n"""
-    else:
-        prob = args.b
-        out += """		if(any(ChildGenomes.containsMutations(wild))) {\n"""
-    out += """
-                        child.tagF = """ + str(1+args.SwD) + """;
-                        roll = runif(1);
-			if(roll < """ + str(prob) + """){		//convert to r01
-				if(sum(childGenome1.containsMutations(wild))){
-					childGenome1.removeMutations(wild);
-					childGenome1.addNewDrawnMutation(m3, 1);\n"""
-    if args.X:
-        out += "                } else if((child.sex == 'F') & sum(childGenome2.containsMutations(wild))){\n"
-    else:
-        out += "                } else if(sum(childGenome2.containsMutations(wild))){\n"
-    out += """                  childGenome2.removeMutations(wild);
-					childGenome2.addNewDrawnMutation(m3, 1);
-				}\n"""
-    if args.two_allele:
-        out += """                  	} else if(roll <""" + str(args.b) +  """*(1-""" + str(args.d) + """)*(1-""" + str(args.b) + """)+""" + str(args.b) +  """*(1-""" + str(args.d) + """)*(1-""" + str(args.b) + """)){		//convert to r10
-				if(sum(childGenome1.containsMutations(wild))){
-					childGenome1.removeMutations(wild);
-					childGenome1.addNewDrawnMutation(m4, 1);\n"""
-        if args.X:
-            out += "                } else if((child.sex == 'F') & sum(childGenome2.containsMutations(wild))){\n"
-        else:
-            out += "                } else if(sum(childGenome2.containsMutations(wild))){\n"
-        out += """                  childGenome2.removeMutations(wild);
-					childGenome2.addNewDrawnMutation(m4, 1);
-                                    }
-			} else if(roll <""" + str(args.b) +  """*(1-""" + str(args.d) + """)*(1-""" + str(args.b) + """)+""" + str(args.b) +  """*(1-""" + str(args.d) + """)*(1-""" + str(args.b) + """+""" + str(args.b) +  """*""" + str(args.b) +  """)){			//convert to r11
-				if(sum(childGenome1.containsMutations(wild))){
-					childGenome1.removeMutations(wild);
-					childGenome1.addNewDrawnMutation(m5, 1);\n"""
-        if args.X:
-            out += "                } else if((child.sex == 'F') & sum(childGenome2.containsMutations(wild))){\n"
-        else:
-            out += "                } else if(sum(childGenome2.containsMutations(wild))){\n"
-        out += """                  childGenome2.removeMutations(wild);
-					childGenome2.addNewDrawnMutation(m5, 1);
-				}\n"""
-    out += """			} else if(runif(1) < """ +str(args.d) + """) {		//convert to D
-                      if(sum(childGenome1.containsMutations(wild))){
-					childGenome1.removeMutations(wild);
-					childGenome1.addNewDrawnMutation(m1, 1);\n"""
-    if args.X:
-        out += "                } else if((child.sex == 'F') & sum(childGenome2.containsMutations(wild))){\n"
-    else:
-        out += "                } else if(sum(childGenome2.containsMutations(wild))){\n"
-    out += """                  childGenome2.removeMutations(wild);
-					childGenome2.addNewDrawnMutation(m1, 1);
-				}
-			}
-		}
-	}
-	return T;
-}
+                    }
 
-fitness(NULL) {
-	if(individual.tagF > 0)
-		return individual.tagF;
-	else
-		return relFitness;
-}
+                    for(cGenome in ChildGenomes){
+                            if(sum(cGenome.containsMutations(sim.mutationsOfType(m1)))==0){
+                                    if(sum(cGenome.containsMutations(sim.mutationsOfType(m3))) < """ + str(args.N_guideRNA) + """) {
+                                            for (i in 1:(""" + str(args.N_guideRNA) + """-sum(cGenome.containsMutations(sim.mutationsOfType(m3))))) {
+                                                    if(runif(1) < c) {		//convert to r11
+                                                            cGenome.addNewDrawnMutation(m3, 1);
+                                                    }
+                                            }
+                                    }
+                            }
+                    }
+            }
 
+            if(any(ChildGenomes.containsMutations(sim.mutationsOfType(m1)))) { //Germline\n"""
+
+    if args.X:
+        out += """ if(child.sex == "F") {\n"""
+    out += """ for(cGenome in ChildGenomes) {
+                            if(sum(cGenome.containsMutations(sim.mutationsOfType(m1))) == 0){
+                                    if(sum(cGenome.containsMutations(sim.mutationsOfType(m3))) <""" + str(args.N_guideRNA) + """) {
+                                            for (i in 1:(""" + str(args.N_guideRNA) + """-sum(cGenome.containsMutations(sim.mutationsOfType(m3))))) {
+                                                    if(runif(1) <""" +str(args.b) + """) {		//convert to r11
+                                                            cGenome.addNewDrawnMutation(m3, 1);
+                                                    } else if(runif(1) <""" +str(args.d) + """) {
+                                                            cGenome.removeMutations(sim.mutationsOfType(m3));
+                                                            cGenome.addNewDrawnMutation(m1, 1);
+                                                            break;
+                                                    }
+                                            }
+                                    }
+                            }
+                    } \n"""
+    if args.X:
+        out += """}\n"""
+    out += """        }
+        return T;
+        }\n"""
+
+
+
+
+
+
+    out += """
 1:40 late() {
 	if (sim.countOfMutationsOfType(m1) == 0){
                 fixed = (sum(sim.substitutions.mutationType == m1) == 1);
@@ -338,15 +153,31 @@ fitness(NULL) {
                 }
 		sim.simulationFinished();
 	} else {
-                driver = sim.mutationsOfType(m1);
-		wild = sim.mutationsOfType(m2);
-	     	r01 = sim.mutationsOfType(m3);
-                r10 = sim.mutationsOfType(m4);
-                r11 = sim.mutationsOfType(m5);
-                cat('#OUTPUT: ');
-		cat(sum(sim.mutationFrequencies(p1, driver)) + " " + sum(sim.mutationFrequencies(p1, wild)) + " " + sum(sim.mutationFrequencies(p1, r01)) + " " +  sum(sim.mutationFrequencies(p1, r10)) + " " + sum(sim.mutationFrequencies(p1, r11)) + '\\n');
-	}
-}
+		  driver = sim.mutationsOfType(m1);
+		  r01 = sim.mutationsOfType(m3);
+		  cat('#OUTPUT: ');
+                  wild = 1-sum(sim.mutationFrequencies(p1, driver));
+
+		  cat(sum(sim.mutationFrequencies(p1, driver)) + " ");
+		  for(i in 1:2){
+			  count = 0;
+			  for(p in p1.genomes[!p1.genomes.isNullGenome]) {
+				  if(sum(p.containsMutations(r01)) == i) {
+					  count = count + 1;
+				  }
+			  }\n"""
+    if args.X:
+        out += """      cat(count/""" + str(1.5*args.N) + """+ " ");
+            wild = wild - count/""" + str(1.5*args.N) + """;\n"""
+    else:
+        out += """      cat(count/""" + str(2*args.N) + """+ " ");
+            wild = wild - count/""" + str(2*args.N) + """;\n"""
+    out += """}
+        cat(wild + \"\\n\");
+	}\n"""
+    if args.X:
+        out += """\n"""
+    out += """}
 """
     return out
 

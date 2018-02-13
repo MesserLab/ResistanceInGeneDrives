@@ -17,11 +17,13 @@ def run_slim(filename):
 
 def main(cmd_line):
     args = generate_slim_input.params()
+    args.X
     #medium
     args.c1 = 0.2
     args.c2 = 0.27
     args.b = 0.28
     args.d = 0.94
+    args.N_guideRNA = 2
     output = generate_slim_input.init(args) #HD F
     with open("Data/tmp/X_medium.txt", "w+") as f:
             f.write(output)

@@ -10,9 +10,8 @@ def set_ax(filename, ax, two=True):
     df = pd.read_table(filename, header=None,  sep=" ")
     df.loc[df.ix[:,40] == 0,"id"] = "Driver"
     df.loc[df.ix[:,40] == 1,"id"] = "Wild"
-    df.loc[df.ix[:,40] == 2,"id"] = "r01"
-    df.loc[df.ix[:,40] == 3,"id"] = "r10"
-    df.loc[df.ix[:,40] == 4,"id"] = "r11"
+    df.loc[df.ix[:,40] == 2,"id"] = "r1"
+    df.loc[df.ix[:,40] == 3,"id"] = "r2"
     df = df.drop(df.columns[40], axis=1)
     mean = df.groupby("id").mean().transpose()
     std_dev = df.groupby("id").std().transpose()
@@ -30,27 +29,27 @@ def set_ax(filename, ax, two=True):
             facecolor="#7384ff")
 
     if two:
-        ax.plot(mean.r01 + mean.r10, label="(r,+)", color="#6e3100")
-        lower_bound = mean.r01+ mean.r10-\
-                (std_dev.r01**2+std_dev.r10**2)**(1/2.0)
+        ax.plot(mean.r1, label="(r,+)", color="#6e3100")
+        lower_bound = mean.r1-\
+                (std_dev.r1)
 
-        upper_bound = mean.r01+ mean.r10+\
-                (std_dev.r01**2+std_dev.r10**2)**(1/2.0)
+        upper_bound = mean.r1+\
+                (std_dev.r1)**(1/2.0)
 
         ax.fill_between(t, upper_bound, lower_bound, alpha=0.3,\
                 facecolor="#6e3100")
 
-        ax.plot(mean.r11, label="Resistance", color="#008454")
-        ax.fill_between(t, mean.r11-std_dev.r11,\
-                mean.r11+std_dev.r11, \
+        ax.plot(mean.r2, label="Resistance", color="#008454")
+        ax.fill_between(t, mean.r2-std_dev.r2,\
+                mean.r2+std_dev.r2, \
                 alpha=0.3, facecolor="#008454")
     else:
-        ax.plot(mean.r01 + mean.r10, label="r01", color="#008454")
-        lower_bound = mean.r01+ mean.r10-\
-                (std_dev.r01**2+std_dev.r10**2)**(1/2.0)
+        ax.plot(mean.r1, label="r01", color="#008454")
+        lower_bound = mean.r1-\
+                (std_dev.r1)
 
-        upper_bound = mean.r01+ mean.r10+\
-                (std_dev.r01**2+std_dev.r10**2)**(1/2.0)
+        upper_bound = mean.r1+\
+                (std_dev.r1)
 
         ax.fill_between(t, lower_bound, upper_bound,\
                 alpha=0.3, facecolor="#008454")
@@ -87,11 +86,11 @@ def main(args):
     set_ax(location + "High_resistance/X_2gRNA.txt", ax2)
     ax2.set_title("Two gRNA", fontsize=axes_title_size)
 
-    set_ax(location + "High_resistance/Autosomal_1gRNA.txt", ax3, False)
+    set_ax(location + "High_resistance/autosomal_1gRNA.txt", ax3, False)
     ax3.set_title("One gRNA", fontsize=axes_title_size)
 
 
-    set_ax(location + "High_resistance/Autosomal_2gRNA.txt", ax4)
+    set_ax(location + "High_resistance/autosomal_2gRNA.txt", ax4)
     ax4.set_title("Two gRNA", fontsize=axes_title_size)
 
 
@@ -100,9 +99,9 @@ def main(args):
 
     set_ax(location + "Medium_resistance/X_2gRNA.txt", ax6)
 
-    set_ax(location + "Medium_resistance/Autosomal_1gRNA.txt", ax7, False)
+    set_ax(location + "Medium_resistance/autosomal_1gRNA.txt", ax7, False)
 
-    set_ax(location + "Medium_resistance/Autosomal_2gRNA.txt", ax8)
+    set_ax(location + "Medium_resistance/autosomal_2gRNA.txt", ax8)
     legend_properties = {'weight':'bold', "size":10.5}
 
 
@@ -113,10 +112,10 @@ def main(args):
     set_ax(location + "Low_resistance/X_2gRNA.txt", ax10)
     ax10.set_xlabel('Generation', fontsize=axes_font_size)
 
-    set_ax(location + "Low_resistance/Autosomal_1gRNA.txt", ax11, False)
+    set_ax(location + "Low_resistance/autosomal_1gRNA.txt", ax11, False)
     ax11.set_xlabel('Generation', fontsize=axes_font_size)
 
-    set_ax(location + "Low_resistance/Autosomal_2gRNA.txt", ax12)
+    set_ax(location + "Low_resistance/autosomal_2gRNA.txt", ax12)
     ax12.set_xlabel('Generation', fontsize=axes_font_size)
     ax12.legend(loc="center right", prop=legend_properties, bbox_to_anchor=[1.02, 0.5])
 

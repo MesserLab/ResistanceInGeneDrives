@@ -17,7 +17,7 @@ def run_slim(filename):
 
 def main(cmd_line):
     args = generate_slim_input.params()
-    args.two_allele = False
+    args.N_guideRNA = 1
     args.X = True
     #medium
     args.c1 = 0.23

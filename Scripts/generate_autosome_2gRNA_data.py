@@ -17,6 +17,7 @@ def run_slim(filename):
 
 def main(cmd_line):
     args = generate_slim_input.params()
+    args.N_guideRNA = 2
     #medium
     args.c1 = 0.2
     args.c2 = 0.27
