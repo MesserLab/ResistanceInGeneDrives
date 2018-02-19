@@ -1,19 +1,9 @@
 #!/usr/bin/env python
-import subprocess
-from random import uniform, randint, seed
 import generate_slim_input
-from parse import parse
+from admin import run_slim
 from multiprocessing import Pool
 import sys
-seed()
-ID = randint(1,1000)
-RUNS = 10000
-
-def run_slim(filename):
-        process = subprocess.Popen(["slim", filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE,universal_newlines=True)
-        out, err = process.communicate()
-        return parse(out)
-
+RUNS = 1000
 
 def main(cmd_line):
     args = generate_slim_input.params()
@@ -48,7 +38,7 @@ def main(cmd_line):
     open('Data/Medium_resistance/autosomal_1gRNA.txt', 'w+').close()
     open('Data/High_resistance/autosomal_1gRNA.txt', 'w+').close()
     open('Data/Low_resistance/autosomal_1gRNA.txt', 'w+').close()
-    for j in range(1000):
+    for j in range(RUNS):
         with Pool(processes=6) as pool:
             medium_pool = pool.apply_async(run_slim, ["Data/tmp/medium_one.txt"])
             high_pool = pool.apply_async(run_slim, ["Data/tmp/high_one.txt"])

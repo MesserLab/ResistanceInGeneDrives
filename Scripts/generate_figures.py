@@ -6,103 +6,127 @@ import pandas as pd
 import numpy as np
 import os
 
-def graph(filename, drive, location, two=True):
+def set_ax(filename, ax, two=True):
+    ax.clear()
     df = pd.read_table(filename, header=None,  sep=" ")
-    df.loc[df.ix[:,40] == 0,"id"] = "Driver"
-    df.loc[df.ix[:,40] == 1,"id"] = "Wild"
-    df.loc[df.ix[:,40] == 2,"id"] = "r01"
-    df.loc[df.ix[:,40] == 3,"id"] = "r10"
-    df.loc[df.ix[:,40] == 4,"id"] = "r11"
-    df = df.drop(df.columns[40], axis=1)
-
-    font = {'family' : 'sans-serif', 'size' : 11}
-    plt.rcParams['font.sans-serif'] = ['Arial']
-    matplotlib.rc('font', **font)
-
-    fig, ax1 = plt.subplots(1)
-    plt.setp(ax1, xticks=np.arange(0, 41, 10.0))
-    fig.set_size_inches(3, 4)
+    df.loc[df.ix[:,41] == 0,"id"] = "Driver"
+    df.loc[df.ix[:,41] == 1,"id"] = "Wild"
+    df.loc[df.ix[:,41] == 2,"id"] = "r1"
+    df.loc[df.ix[:,41] == 3,"id"] = "r2"
+    df = df.drop(df.columns[41], axis=1)
     mean = df.groupby("id").mean().transpose()
-    print("max frequency: " + str(mean.Driver.max()))
-    print("generation of max frequency: " + str(mean.Driver.idxmax()))
+    print("Driver: " + ",".join(str(i) for i in mean.Driver))
+    print("Wild: " + ",".join(str(i) for i in mean.Wild))
+    print("r1: " + ",".join(str(i) for i in mean.r1))
+    print("r2: " + ",".join(str(i) for i in mean.r2))
+    print("\n")
     std_dev = df.groupby("id").std().transpose()
-    t = np.arange(40)
-    ax1.plot(mean.Driver, label="Driver", color="#ff328b")
-    ax1.fill_between(t, mean.Driver-std_dev.Driver, \
+
+    t = np.arange(41)
+    plt.setp(ax, xticks=np.arange(0, 42, 10.0))
+    ax.plot(mean.Driver, label="Driver", color="#ff328b")
+    ax.fill_between(t, mean.Driver-std_dev.Driver, \
             mean.Driver+std_dev.Driver, alpha=0.3,\
             color="#ff328b")
 
-    ax1.plot(mean.Wild, label="+", color="#7384ff")
-    ax1.fill_between(t, mean.Wild-std_dev.Wild, \
+    ax.plot(mean.Wild, label="Wild Type", color="#7384ff")
+    ax.fill_between(t, mean.Wild-std_dev.Wild, \
             mean.Wild+std_dev.Wild, alpha=0.3,\
             facecolor="#7384ff")
 
     if two:
-        ax1.plot(mean.r01 + mean.r10, label="r01", color="#6e3100")
-        lower_bound = mean.r01+ mean.r10-\
-                (std_dev.r01**2+std_dev.r10**2)**(1/2.0)
+        ax.plot(mean.r1, label="(r,+)", color="#6e3100")
+        lower_bound = mean.r1-\
+                (std_dev.r1)
 
-        upper_bound = mean.r01+ mean.r10+\
-                (std_dev.r01**2+std_dev.r10**2)**(1/2.0)
+        upper_bound = mean.r1+\
+                (std_dev.r1)**(1/2.0)
 
-        ax1.fill_between(t, upper_bound, lower_bound, alpha=0.3,\
+        ax.fill_between(t, upper_bound, lower_bound, alpha=0.3,\
                 facecolor="#6e3100")
 
-        ax1.plot(mean.r11, label="r11", color="#008454")
-        ax1.fill_between(t, mean.r11-std_dev.r11,\
-                mean.r11+std_dev.r11, \
+        ax.plot(mean.r2, label="Resistance", color="#008454")
+        ax.fill_between(t, mean.r2-std_dev.r2,\
+                mean.r2+std_dev.r2, \
                 alpha=0.3, facecolor="#008454")
     else:
-        ax1.plot(mean.r01 + mean.r10, label="r01", color="#008454")
-        lower_bound = mean.r01+ mean.r10-\
-                (std_dev.r01**2+std_dev.r10**2)**(1/2.0)
+        ax.plot(mean.r1, label="r01", color="#008454")
+        lower_bound = mean.r1-\
+                (std_dev.r1)
 
-        upper_bound = mean.r01+ mean.r10+\
-                (std_dev.r01**2+std_dev.r10**2)**(1/2.0)
+        upper_bound = mean.r1+\
+                (std_dev.r1)
 
-        ax1.fill_between(t, lower_bound, upper_bound,\
+        ax.fill_between(t, lower_bound, upper_bound,\
                 alpha=0.3, facecolor="#008454")
 
-        ax1.spines['right'].set_color('none')
-    ax1.spines['top'].set_color('none')
-    ax1.xaxis.set_ticks_position('bottom')
-    ax1.yaxis.set_ticks_position('left')
-    ax1.set_ylim(0, 1)
-    ax1.set_xlim(0, 40)
-    ax1.set_xlabel('Generations')
-    ax1.set_ylabel('Frequency')
-    ax1.legend( loc=location, prop={"size":10}, frameon=False)
-    filename = filename.split('/')[3]
-    print(drive + ' ' + filename)
-    plt.tight_layout()
-    fig.savefig('Figures/' + drive + '/' + filename.split('.')[0] + '.png', format='png', dpi=1500)
+    ax.spines['right'].set_color('none')
+    ax.spines['top'].set_color('none')
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticklabels([])
+    ax.yaxis.set_ticklabels([])
+    ax.set_ylim(0, 1)
+    ax.set_xlim(0, 40)
 
 def main(args):
-    drives = ["High_resistance", "Medium_resistance", "Low_resistance"]
-    legend_location = {("High_resistance", "Autosomal_2gRNA.txt"):"upper right",
-            ("High_resistance", "Autosomal_1gRNA.txt"):"upper right",
-            ("High_resistance", "X_2gRNA.txt"):"upper right",
-            ("High_resistance", "X_1gRNA.txt"):"upper right",
-            ("Medium_resistance", "Autosomal_2gRNA.txt"):"center right",
-            ("Medium_resistance", "Autosomal_1gRNA.txt"):"upper right",
-            ("Medium_resistance", "X_2gRNA.txt"):"center right",
-            ("Medium_resistance", "X_1gRNA.txt"):"upper right",
-            ("Low_resistance", "Autosomal_2gRNA.txt"):"center right",
-            ("Low_resistance", "Autosomal_1gRNA.txt"):"upper right",
-            ("Low_resistance", "X_2gRNA.txt"):"center right",
-            ("Low_resistance", "X_1gRNA.txt"):"upper right"}
+    font = {'family' : 'sans-serif', 'size' : 11}
+    plt.rcParams['font.sans-serif'] = ['Arial']
+    matplotlib.rc('font', **font)
+
+    fig, ax = plt.subplots()
+    fig.set_size_inches(10, 10)
 
     location = 'Data/'
     if args.example:
-        location = 'Data/Example'
-    for drive in drives:
-        for filename in os.listdir('../Data/' + drive + '/'):
-            if filename.split('_')[1].startswith('2'):
-                graph(location + drive + '/' + filename, drive,\
-                        legend_location[(drive, filename)])
-            else:
-                graph(location + drive + '/' + filename, drive,\
-                        legend_location[(drive, filename)], False)
+        location = 'Data/Example/'
+    print("X_1gRNA_high")
+    set_ax(location + "High_resistance/X_1gRNA.txt", ax, False)
+    fig.savefig('Figures/X_1_H.pdf', format='pdf', dpi=1500)
+
+    print("X_2gRNA_high")
+    set_ax(location + "High_resistance/X_2gRNA.txt", ax)
+    fig.savefig('Figures/X_2_H.pdf', format='pdf', dpi=1500)
+
+    print("autosomal_1gRNA_high")
+    set_ax(location + "High_resistance/autosomal_1gRNA.txt", ax, False)
+    fig.savefig('Figures/A_1_H.pdf', format='pdf', dpi=1500)
+
+    print("autosomal_2gRNA_high")
+    set_ax(location + "High_resistance/autosomal_2gRNA.txt", ax)
+    fig.savefig('Figures/A_2_H.pdf', format='pdf', dpi=1500)
+
+    print("X_1gRNA_medium")
+    set_ax(location + "Medium_resistance/X_1gRNA.txt", ax, False)
+    fig.savefig('Figures/X_1_M.pdf', format='pdf', dpi=1500)
+
+    print("X_2gRNA_medium")
+    set_ax(location + "Medium_resistance/X_2gRNA.txt", ax)
+    fig.savefig('Figures/X_2_M.pdf', format='pdf', dpi=1500)
+
+    print("autosomal_1gRNA_medium")
+    set_ax(location + "Medium_resistance/autosomal_1gRNA.txt", ax, False)
+    fig.savefig('Figures/A_1_M.pdf', format='pdf', dpi=1500)
+
+    print("autosomal_2gRNA_medium")
+    set_ax(location + "Medium_resistance/autosomal_2gRNA.txt", ax)
+    fig.savefig('Figures/A_2_M.pdf', format='pdf', dpi=1500)
+
+    print("X_1gRNA_low")
+    set_ax(location + "Low_resistance/X_1gRNA.txt", ax, False)
+    fig.savefig('Figures/X_1_L.pdf', format='pdf', dpi=1500)
+
+    print("X_2gRNA_low")
+    set_ax(location + "Low_resistance/X_2gRNA.txt", ax)
+    fig.savefig('Figures/X_2_L.pdf', format='pdf', dpi=1500)
+
+    print("autosomal_1gRNA_low")
+    set_ax(location + "Low_resistance/autosomal_1gRNA.txt", ax, False)
+    fig.savefig('Figures/A_1_L.pdf', format='pdf', dpi=1500)
+
+    print("autosomal_2gRNA_low")
+    set_ax(location + "Low_resistance/autosomal_2gRNA.txt", ax)
+    fig.savefig('Figures/A_2_L.pdf', format='pdf', dpi=1500)
 
 if __name__=="__main__":
     parser = ArgumentParser(description='Generate Figures.')

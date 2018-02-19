@@ -15,9 +15,11 @@ initialize() {
 1 late() {
 
 
+        //femaleGenomes = p1.individuals[p1.individuals.sex == "F"][0:49].genomes[0:99];
         femaleGenomes = p1.individuals[p1.individuals.sex == "F"].genomes[0:99];
 	femaleGenomes.addNewDrawnMutation(m1, 0); //add driver
 
+        //maleGenomes = p1.individuals[p1.individuals.sex == "M"][0:49].genomes[0:99];
         maleGenomes = p1.individuals[p1.individuals.sex == "M"].genomes[0:99];
 	maleGenomes.addNewDrawnMutation(m1, 0); //add driver
 }
@@ -70,7 +72,7 @@ initialize() {
         return T;
         }
 
-1:40 late() {
+1:41 late() {
 	if (sim.countOfMutationsOfType(m1) == 0){
                 fixed = (sum(sim.substitutions.mutationType == m1) == 1);
                 if(fixed){
@@ -93,8 +95,8 @@ initialize() {
 					  count = count + 1;
 				  }
 			  }
-			  cat(count/20000 + " ");
-wild = wild - count/20000;
+      cat(count/20000+ " ");
+            wild = wild - count/20000;
 }
         cat(wild + "\n");
 	}
