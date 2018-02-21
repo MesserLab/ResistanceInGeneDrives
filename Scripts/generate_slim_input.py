@@ -192,7 +192,7 @@ def main(args):
 
 
 if __name__=="__main__":
-    parser = ArgumentParser(description='Process some integers.')
+    parser = ArgumentParser(description='Generate SLiM input file for gene drive.')
     parser.add_argument('-N', dest='N', type=int, default=DEFAULT["N"], help="Census Population Size, default=" + str(DEFAULT["N"]))
     parser.add_argument('-N_guideRNA', dest='N_guideRNA', type=int, default=DEFAULT["N_guideRNA"], help="Number of guideRNAs, default=" + str(DEFAULT["N_guideRNA"]))
     parser.add_argument('-sd', dest='SD', type=float, default=DEFAULT["SD"], help="Fitness cost of driver homozygote, default=" + str(DEFAULT["SD"]))
