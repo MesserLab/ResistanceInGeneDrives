@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import subprocess
 
+# parses the SLiM output for allele frequencies
 def parse(out):
     lines = out.split("\n")
     driver = []

@@ -13,8 +13,8 @@ def main(cmd_line):
     args.c2 = 0.27
     args.b = 0.28
     args.d = 0.94
-    output = generate_slim_input.init(args) #HD F
-    with open("Data/tmp/medium.txt", "w+") as f:
+    output = generate_slim_input.init(args)
+    with open("Data/tmp/medium.txt", "w+") as f: #write SliM input file
             f.write(output)
 
     #high
@@ -22,8 +22,8 @@ def main(cmd_line):
     args.c2 = 0.8
     args.b = 0.3
     args.d = 0.95
-    output = generate_slim_input.init(args) #HD F
-    with open("Data/tmp/high.txt", "w+") as f:
+    output = generate_slim_input.init(args)
+    with open("Data/tmp/high.txt", "w+") as f: #write SliM input file
             f.write(output)
 
     #low
@@ -31,15 +31,17 @@ def main(cmd_line):
     args.c2 = 0.05
     args.b = 0.25
     args.d = 0.93
-    output = generate_slim_input.init(args) #HD F
-    with open("Data/tmp/low.txt", "w+") as f:
+    output = generate_slim_input.init(args)
+    with open("Data/tmp/low.txt", "w+") as f: #write SliM input file
             f.write(output)
 
+    #erase previous data
     open('Data/Medium_resistance/autosomal_2gRNA.txt', 'w+').close()
     open('Data/High_resistance/autosomal_2gRNA.txt', 'w+').close()
     open('Data/Low_resistance/autosomal_2gRNA.txt', 'w+').close()
     for j in range(RUNS):
-        with Pool(processes=4) as pool:
+        #run simulations in parallel
+        with Pool(processes=3) as pool:
             medium_pool = pool.apply_async(run_slim, ["Data/tmp/medium.txt"])
             high_pool = pool.apply_async(run_slim, ["Data/tmp/high.txt"])
             low_pool = pool.apply_async(run_slim, ["Data/tmp/low.txt"])
@@ -48,6 +50,7 @@ def main(cmd_line):
             high_result = high_pool.get()
             low_result = low_pool.get()
 
+            # write to file
             with open('Data/Medium_resistance/autosomal_2gRNA.txt', "a") as f:
                 for i in range(0, len(medium_result)):
                     f.write(" ".join(medium_result[i]) + " " + str(i) + "\n")
