@@ -26,7 +26,7 @@ resistance allele formation in CRISPR gene drives
 		slim Scripts/example_SLiM_inputs/autosome_2gRNA_high.slim
 
 	Generate data for 1000 simulations:
-		Each simulation has 5 rows: allele frequencies of Driver allele, Wildtype, R01, R10, R11
+		Each simulation has 4 rows: allele frequencies of Driver allele, Wildtype, Resistance Allele 1,  Resistance Allele 2 (if 2 guide RNAs)
 			Each row has 40 generations of allele frequencies
 		./Scripts/generate_autosome_2gRNA_data.py
 
