@@ -24,18 +24,18 @@ def set_ax(filename, ax, two=True):
 
     t = np.arange(41)
     plt.setp(ax, xticks=np.arange(0, 42, 10.0))
-    ax.plot(mean.Driver, label="Driver", color="#ff328b")
+    ax.plot(mean.Driver, label="Driver", color="#ff328b", linewidth=2)
     ax.fill_between(t, mean.Driver-std_dev.Driver, \
             mean.Driver+std_dev.Driver, alpha=0.3,\
             color="#ff328b")
 
-    ax.plot(mean.Wild, label="Wild Type", color="#7384ff")
+    ax.plot(mean.Wild, label="Wild Type", color="#7384ff", linewidth=2)
     ax.fill_between(t, mean.Wild-std_dev.Wild, \
             mean.Wild+std_dev.Wild, alpha=0.3,\
             facecolor="#7384ff")
 
     if two:
-        ax.plot(mean.r1, label="(r,+)", color="#6e3100")
+        ax.plot(mean.r1, label="(r,+)", color="#6e3100", linewidth=2)
         lower_bound = mean.r1-\
                 (std_dev.r1)
 
@@ -45,12 +45,12 @@ def set_ax(filename, ax, two=True):
         ax.fill_between(t, upper_bound, lower_bound, alpha=0.3,\
                 facecolor="#6e3100")
 
-        ax.plot(mean.r2, label="Resistance", color="#008454")
+        ax.plot(mean.r2, label="Resistance", color="#008454", linewidth=2)
         ax.fill_between(t, mean.r2-std_dev.r2,\
                 mean.r2+std_dev.r2, \
                 alpha=0.3, facecolor="#008454")
     else:
-        ax.plot(mean.r1, label="r01", color="#008454")
+        ax.plot(mean.r1, label="r01", color="#008454", linewidth=2)
         lower_bound = mean.r1-\
                 (std_dev.r1)
 
@@ -68,6 +68,7 @@ def set_ax(filename, ax, two=True):
     ax.yaxis.set_ticklabels([])
     ax.set_ylim(0, 1)
     ax.set_xlim(0, 40)
+    ax.tick_params(length=20, width=2)
 
 def main(args):
     font = {'family' : 'sans-serif', 'size' : 11}
@@ -82,50 +83,62 @@ def main(args):
         location = 'Data/Example/'
     print("X_1gRNA_high")
     set_ax(location + "High_resistance/X_1gRNA.txt", ax, False)
+    fig.tight_layout()
     fig.savefig('Figures/X_1_H.pdf', format='pdf', dpi=1500)
 
     print("X_2gRNA_high")
     set_ax(location + "High_resistance/X_2gRNA.txt", ax)
+    fig.tight_layout()
     fig.savefig('Figures/X_2_H.pdf', format='pdf', dpi=1500)
 
     print("autosomal_1gRNA_high")
     set_ax(location + "High_resistance/autosomal_1gRNA.txt", ax, False)
+    fig.tight_layout()
     fig.savefig('Figures/A_1_H.pdf', format='pdf', dpi=1500)
 
     print("autosomal_2gRNA_high")
     set_ax(location + "High_resistance/autosomal_2gRNA.txt", ax)
+    fig.tight_layout()
     fig.savefig('Figures/A_2_H.pdf', format='pdf', dpi=1500)
 
     print("X_1gRNA_medium")
     set_ax(location + "Medium_resistance/X_1gRNA.txt", ax, False)
+    fig.tight_layout()
     fig.savefig('Figures/X_1_M.pdf', format='pdf', dpi=1500)
 
     print("X_2gRNA_medium")
     set_ax(location + "Medium_resistance/X_2gRNA.txt", ax)
+    fig.tight_layout()
     fig.savefig('Figures/X_2_M.pdf', format='pdf', dpi=1500)
 
     print("autosomal_1gRNA_medium")
     set_ax(location + "Medium_resistance/autosomal_1gRNA.txt", ax, False)
+    fig.tight_layout()
     fig.savefig('Figures/A_1_M.pdf', format='pdf', dpi=1500)
 
     print("autosomal_2gRNA_medium")
     set_ax(location + "Medium_resistance/autosomal_2gRNA.txt", ax)
+    fig.tight_layout()
     fig.savefig('Figures/A_2_M.pdf', format='pdf', dpi=1500)
 
     print("X_1gRNA_low")
     set_ax(location + "Low_resistance/X_1gRNA.txt", ax, False)
+    fig.tight_layout()
     fig.savefig('Figures/X_1_L.pdf', format='pdf', dpi=1500)
 
     print("X_2gRNA_low")
     set_ax(location + "Low_resistance/X_2gRNA.txt", ax)
+    fig.tight_layout()
     fig.savefig('Figures/X_2_L.pdf', format='pdf', dpi=1500)
 
     print("autosomal_1gRNA_low")
     set_ax(location + "Low_resistance/autosomal_1gRNA.txt", ax, False)
+    fig.tight_layout()
     fig.savefig('Figures/A_1_L.pdf', format='pdf', dpi=1500)
 
     print("autosomal_2gRNA_low")
     set_ax(location + "Low_resistance/autosomal_2gRNA.txt", ax)
+    fig.tight_layout()
     fig.savefig('Figures/A_2_L.pdf', format='pdf', dpi=1500)
 
 if __name__=="__main__":
