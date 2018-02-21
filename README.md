@@ -1,6 +1,6 @@
 # Reducing resistance allele formation in CRISPR/Cas9 gene drives
 
-Files and scripts used to simulate and plot the evolutionary dinameics of resistance
+Files and scripts used to simulate and plot the evolutionary dynamics of resistance
 allele formation in CRISPR gene drives.
 
 **Citation:** Jackson Champer, Jingxian Liu, Suh Yeon Oh, Riona Reeves, Anisha
